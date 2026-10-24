@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShiftSync - Retail Scheduling Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+    <nav class="bg-indigo-600 text-white shadow-md px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <span class="text-2xl font-bold tracking-tight">🔄 ShiftSync</span>
+            <span class="bg-indigo-500 text-xs px-2.5 py-1 rounded-full border border-indigo-400">Zero-Dependency Roster</span>
+        </div>
+        <div class="text-sm opacity-90">Logged in as: <strong>Store Manager / Team Mode</strong></div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+        
+        <!-- Live System Metric Indicators -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-500 font-medium uppercase tracking-wider">Active Roster Shifts</p>
+                    <h3 class="text-3xl font-bold mt-1 text-gray-900">{{ total_shifts }}</h3>
+                </div>
+                <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg text-xl">📅</div>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-500 font-medium uppercase tracking-wider">Open Marketplace Items</p>
+                    <h3 class="text-3xl font-bold mt-1 text-amber-600">{{ marketplace_count }}</h3>
+                </div>
+                <div class="p-3 bg-amber-50 text-amber-600 rounded-lg text-xl">🛒</div>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-500 font-medium uppercase tracking-wider">Awaiting Manager Approval</p>
+                    <h3 class="text-3xl font-bold mt-1 text-emerald-600">{{ pending_swaps }}</h3>
+                </div>
+                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg text-xl">⚖️</div>
+            </div>
+        </section>
+
+        <!-- Main Operations Split Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="space-y-8 lg:col-span-1">
+                <!-- Visual Shift Builder Form -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center"><span class="mr-2">📝</span> Visual Shift Builder</h2>
+                    <form action="/add_shift" method="POST" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Team Member Name</label>
+                            <input type="text" name="employee" required placeholder="e.g., Jane Doe" class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Operational Role</label>
+                            <select name="role" class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <option>Cashier</option>
+                                <option>Stocking</option>
+                                <option>Supervisor</option>
+                                <option>Customer Service</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Shift Target Date</label>
+                                <input type="date" name="date" required class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Hours Length</label>
+                                <input type="number" name="hours" value="8" min="1" max="12" class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Time Block</label>
+                            <input type="text" name="time" required placeholder="e.g., 08:00 - 16:00" class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-indigo-700 transition">Publish to Active Schedule</button>
+                    </form>
+                </div>
+
+                <!-- Availability Input Portal -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center"><span class="mr-2">📥</span> Availability Logging Portal</h2>
+                    <form action="/submit_availability" method="POST" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Your Name</label>
+                            <input type="text" name="employee" required placeholder="Alice Smith" class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Days Available</label>
+                            <input type="text" name="days" required placeholder="e.g., Mon, Tue, Thu" class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Preferred Target Window</label>
+                            <select name="hours" class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <option>Mornings (06:00 - 14:00)</option>
+                                <option>Mid-Day (12:00 - 20:00)</option>
+                                <option>Nights (16:00 - 00:00)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full bg-gray-800 text-white rounded-lg py-2 text-sm font-semibold hover:bg-gray-900 transition">Log Intended Hours</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Master Schedule & Swap Marketplace Sections -->
+            <div class="space-y-8 lg:col-span-2">
+                
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="p-5 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                        <h2 class="text-lg font-bold text-gray-900 flex items-center"><span class="mr-2">📋</span> Master Active Store Schedule</h2>
+                        <span class="text-xs font-medium text-gray-500">Real-time Sync Live</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 text-xs font-semibold uppercase text-gray-600 border-b border-gray-200">
+                                    <th class="p-3">Staff Member</th>
+                                    <th class="p-3">Role</th>
+                                    <th class="p-3">Date &amp; Hours</th>
+                                    <th class="p-3">Roster Status</th>
+                                    <th class="p-3 text-right">Self-Service Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 text-sm">
+                                <!-- SHIFT_ROWS_PLACEHOLDER -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="p-5 border-b border-gray-100 bg-gray-50"><h2 class="text-lg font-bold text-gray-900 flex items-center"><span class="mr-2">⚖️</span> Rule Compliance &amp; Swap Approvals</h2></div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 text-xs font-semibold uppercase text-gray-600 border-b border-gray-200">
+                                    <th class="p-3">Original Holder</th>
+                                    <th class="p-3">Target Shift Details</th>
